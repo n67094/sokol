@@ -2783,6 +2783,7 @@ typedef struct {
     EGLDisplay display;
     EGLContext context;
     EGLSurface surface;
+    bool (*gamepad_event_handler)(const AInputEvent*);
 } _sapp_android_t;
 
 #endif // _SAPP_ANDROID
@@ -8566,7 +8567,15 @@ _SOKOL_PRIVATE int _sapp_android_input_cb(int fd, int events, void* data) {
         if (AInputQueue_preDispatchEvent(_sapp.android.current.input, event) != 0) {
             continue;
         }
+
         int32_t handled = 0;
+
+        if (_sapp.android.gamepad_event_handler) {
+            if (_sapp.android.gamepad_event_handler(event)) {
+                handled = 1;
+            }
+        }
+
         if (_sapp_android_touch_event(event) || _sapp_android_key_event(event)) {
             handled = 1;
         }
