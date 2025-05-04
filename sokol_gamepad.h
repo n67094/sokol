@@ -1,3 +1,6 @@
+#if defined(SOKOL_IMPL) && !defined(SOKOL_GAMEPAD_IMPL)
+#define SOKOL_GAMEPAD_IMPL
+#endif
 #ifndef SOKOL_GAMEPAD_INCLUDED
 /*
 sokol_gamepad.h -- cross-platform gamepad API
@@ -47,53 +50,60 @@ for input processing.
 #endif
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/* Bit flags for digital_inputs bitfield */
-typedef enum sgamepad_digital_inputs {
-  SGAMEPAD_GAMEPAD_DPAD_UP = 0x0001,
-  SGAMEPAD_GAMEPAD_DPAD_DOWN = 0x0002,
-  SGAMEPAD_GAMEPAD_DPAD_LEFT = 0x0004,
-  SGAMEPAD_GAMEPAD_DPAD_RIGHT = 0x0008,
-  SGAMEPAD_GAMEPAD_START = 0x0010,
-  SGAMEPAD_GAMEPAD_BACK = 0x0020,        // Select on DualShock
-  SGAMEPAD_GAMEPAD_A = 0x0040,           // X on DualShock
-  SGAMEPAD_GAMEPAD_B = 0x0080,           // Circle on DualShock
-  SGAMEPAD_GAMEPAD_X = 0x0100,           // Square on DualShock
-  SGAMEPAD_GAMEPAD_Y = 0x0200,           // Triangle on DualShock
-  SGAMEPAD_GAMEPAD_LEFT_THUMB = 0x0400,  // L3 on DualShock
-  SGAMEPAD_GAMEPAD_RIGHT_THUMB = 0x0800, // R3 on DualShock
-} sgamepad_digital_inputs;
+  /* Bit flags for digital_inputs bitfield */
+  typedef enum sgamepad_digital_inputs
+  {
+    SGAMEPAD_GAMEPAD_DPAD_UP     = 0x0001,
+    SGAMEPAD_GAMEPAD_DPAD_DOWN   = 0x0002,
+    SGAMEPAD_GAMEPAD_DPAD_LEFT   = 0x0004,
+    SGAMEPAD_GAMEPAD_DPAD_RIGHT  = 0x0008,
+    SGAMEPAD_GAMEPAD_START       = 0x0010,
+    SGAMEPAD_GAMEPAD_BACK        = 0x0020, // Select on DualShock
+    SGAMEPAD_GAMEPAD_A           = 0x0040, // X on DualShock
+    SGAMEPAD_GAMEPAD_B           = 0x0080, // Circle on DualShock
+    SGAMEPAD_GAMEPAD_X           = 0x0100, // Square on DualShock
+    SGAMEPAD_GAMEPAD_Y           = 0x0200, // Triangle on DualShock
+    SGAMEPAD_GAMEPAD_LEFT_THUMB  = 0x0400, // L3 on DualShock
+    SGAMEPAD_GAMEPAD_RIGHT_THUMB = 0x0800, // R3 on DualShock
+  } sgamepad_digital_inputs;
 
-typedef struct sgamepad_analog_stick_state {
-  float normalized_x; // X component as reported by underlying API, scaled 0 to
+  typedef struct sgamepad_analog_stick_state
+  {
+    float
+        normalized_x; // X component as reported by underlying API, scaled 0 to
                       // 1
-  float normalized_y; // Y component as reported by underlying API, scaled 0 to
-                      // 1
-  float direction_x; // X component of normalized direction vector
-  float direction_y; // Y component of normalized direction vector
-  float magnitude;   // Normalized magnitude
-} sgamepad_analog_stick_state;
+    float
+        normalized_y;  // Y component as reported by underlying API, scaled 0 to
+                       // 1
+    float direction_x; // X component of normalized direction vector
+    float direction_y; // Y component of normalized direction vector
+    float magnitude;   // Normalized magnitude
+  } sgamepad_analog_stick_state;
 
-typedef struct sgamepad_gamepad_state {
-  uint16_t digital_inputs;
-  sgamepad_analog_stick_state left_stick;
-  sgamepad_analog_stick_state right_stick;
-  float left_shoulder;
-  float right_shoulder;
-  float left_trigger;
-  float right_trigger;
-} sgamepad_gamepad_state;
+  typedef struct sgamepad_gamepad_state
+  {
+    uint16_t digital_inputs;
+    sgamepad_analog_stick_state left_stick;
+    sgamepad_analog_stick_state right_stick;
+    float left_shoulder;
+    float right_shoulder;
+    float left_trigger;
+    float right_trigger;
+  } sgamepad_gamepad_state;
 
-SOKOL_API_DECL unsigned int sgamepad_get_max_supported_gamepads();
+  SOKOL_API_DECL unsigned int sgamepad_get_max_supported_gamepads();
 
-SOKOL_API_DECL void sgamepad_init();
+  SOKOL_API_DECL void sgamepad_init();
 
-SOKOL_API_DECL void sgamepad_record_state();
+  SOKOL_API_DECL void sgamepad_record_state();
 
-SOKOL_API_DECL void sgamepad_get_gamepad_state(unsigned int index,
-                                               sgamepad_gamepad_state *pstate);
+  SOKOL_API_DECL void
+  sgamepad_get_gamepad_state(unsigned int index,
+                             sgamepad_gamepad_state *pstate);
 
 #ifdef __cplusplus
 } /* extern "C" */
@@ -103,7 +113,7 @@ SOKOL_API_DECL void sgamepad_get_gamepad_state(unsigned int index,
 #endif
 #endif // SOKOL_GAMEPAD_INCLUDED
 
-#ifdef SOKOL_IMPL
+#ifdef SOKOL_GAMEPAD_IMPL
 #define SOKOL_GAMEPAD_IMPL_INCLUDED (1)
 #include <math.h>
 #include <string.h> /* memset */
@@ -122,15 +132,6 @@ SOKOL_API_DECL void sgamepad_get_gamepad_state(unsigned int index,
 #endif
 #ifndef SOKOL_UNREACHABLE
 #define SOKOL_UNREACHABLE SOKOL_ASSERT(false)
-#endif
-#if !defined(SOKOL_CALLOC) || !defined(SOKOL_FREE)
-#include <stdlib.h>
-#endif
-#if !defined(SOKOL_CALLOC)
-#define SOKOL_CALLOC(n, s) calloc(n, s)
-#endif
-#if !defined(SOKOL_FREE)
-#define SOKOL_FREE(p) free(p)
 #endif
 #ifndef SOKOL_LOG
 #ifdef SOKOL_DEBUG
@@ -171,8 +172,10 @@ SOKOL_API_DECL void sgamepad_get_gamepad_state(unsigned int index,
 /*== COMMON INCLUDES AND DEFINES ==================================*/
 
 _SOKOL_PRIVATE float
-_sgamepad_normalize_analog_trigger(float value, float max_value,
-                                   float activation_value) {
+_sgamepad_normalize_analog_trigger(float value,
+                                   float max_value,
+                                   float activation_value)
+{
   if (value < activation_value) {
     return 0.0f;
   }
@@ -181,14 +184,18 @@ _sgamepad_normalize_analog_trigger(float value, float max_value,
   return output;
 }
 
-_SOKOL_PRIVATE void _sgamepad_generate_analog_stick_state(
-    float x_value, float y_value, float max_magnitude,
-    float dead_zone_magnitude, sgamepad_analog_stick_state *pstate) {
+_SOKOL_PRIVATE void
+_sgamepad_generate_analog_stick_state(float x_value,
+                                      float y_value,
+                                      float max_magnitude,
+                                      float dead_zone_magnitude,
+                                      sgamepad_analog_stick_state *pstate)
+{
   float magnitude = 0.0f;
   if (max_magnitude != 1.0f) {
     pstate->normalized_x = fmax(fmin(x_value / max_magnitude, 1.0f), -1.0f);
     pstate->normalized_y = fmax(fmin(y_value / max_magnitude, 1.0f), -1.0f);
-    magnitude = sqrtf(x_value * x_value + y_value * y_value);
+    magnitude            = sqrtf(x_value * x_value + y_value * y_value);
   } else {
     pstate->normalized_x = x_value;
     pstate->normalized_y = y_value;
@@ -198,15 +205,15 @@ _SOKOL_PRIVATE void _sgamepad_generate_analog_stick_state(
   if (magnitude <= dead_zone_magnitude) {
     pstate->direction_x = 0.0f;
     pstate->direction_y = 0.0f;
-    pstate->magnitude = 0.0f;
+    pstate->magnitude   = 0.0f;
     return;
   }
 
   pstate->direction_x = x_value / magnitude;
   pstate->direction_y = y_value / magnitude;
-  magnitude = fmin(magnitude, max_magnitude);
-  pstate->magnitude =
-      (magnitude - dead_zone_magnitude) / (max_magnitude - dead_zone_magnitude);
+  magnitude           = fmin(magnitude, max_magnitude);
+  pstate->magnitude   = (magnitude - dead_zone_magnitude)
+                      / (max_magnitude - dead_zone_magnitude);
 }
 
 /*== PLATFORM SPECIFIC INCLUDES AND DEFINES ==================================*/
@@ -243,7 +250,8 @@ means no way to distinguish between devices generating events */
 
 #endif
 
-typedef struct sgamepad {
+typedef struct sgamepad
+{
   sgamepad_gamepad_state gamepad_states[SGAMEPAD_MAX_SUPPORTED_GAMEPADS];
 #if defined(__ANDROID__)
   sgamepad_gamepad_state
@@ -252,12 +260,14 @@ typedef struct sgamepad {
 #endif
 } sgamepad;
 
-_SOKOL_PRIVATE sgamepad _sgamepad = {0};
+_SOKOL_PRIVATE sgamepad _sgamepad = { 0 };
 
 /*== Windows Implementation ============================================*/
 #if defined(_WIN32)
 
-_SOKOL_PRIVATE void _sgamepad_record_state() {
+_SOKOL_PRIVATE void
+_sgamepad_record_state()
+{
   for (int i = 0; i < SGAMEPAD_MAX_SUPPORTED_GAMEPADS; i++) {
     sgamepad_gamepad_state *target = _sgamepad.gamepad_states + i;
 
@@ -295,30 +305,39 @@ _SOKOL_PRIVATE void _sgamepad_record_state() {
       new_flags |= SGAMEPAD_GAMEPAD_RIGHT_THUMB;
     target->digital_inputs = new_flags;
 
-    _sgamepad_generate_analog_stick_state(
-        xinput_state.Gamepad.sThumbLX, xinput_state.Gamepad.sThumbLY, SHRT_MAX,
-        XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, &(target->left_stick));
-    _sgamepad_generate_analog_stick_state(
-        xinput_state.Gamepad.sThumbRX, xinput_state.Gamepad.sThumbRY, SHRT_MAX,
-        XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE, &(target->right_stick));
+    _sgamepad_generate_analog_stick_state(xinput_state.Gamepad.sThumbLX,
+                                          xinput_state.Gamepad.sThumbLY,
+                                          SHRT_MAX,
+                                          XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE,
+                                          &(target->left_stick));
+    _sgamepad_generate_analog_stick_state(xinput_state.Gamepad.sThumbRX,
+                                          xinput_state.Gamepad.sThumbRY,
+                                          SHRT_MAX,
+                                          XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE,
+                                          &(target->right_stick));
 
-    target->left_shoulder =
-        (xinput_digital_buttons & XINPUT_GAMEPAD_LEFT_SHOULDER) ? 1.0f : 0.0f;
-    target->right_shoulder =
-        (xinput_digital_buttons & XINPUT_GAMEPAD_RIGHT_SHOULDER) ? 1.0f : 0.0f;
-    target->left_trigger = _sgamepad_normalize_analog_trigger(
-        xinput_state.Gamepad.bLeftTrigger, 255,
-        XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
-    target->right_trigger = _sgamepad_normalize_analog_trigger(
-        xinput_state.Gamepad.bRightTrigger, 255,
-        XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+    target->left_shoulder
+        = (xinput_digital_buttons & XINPUT_GAMEPAD_LEFT_SHOULDER) ? 1.0f : 0.0f;
+    target->right_shoulder
+        = (xinput_digital_buttons & XINPUT_GAMEPAD_RIGHT_SHOULDER) ? 1.0f
+                                                                   : 0.0f;
+    target->left_trigger
+        = _sgamepad_normalize_analog_trigger(xinput_state.Gamepad.bLeftTrigger,
+                                             255,
+                                             XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+    target->right_trigger
+        = _sgamepad_normalize_analog_trigger(xinput_state.Gamepad.bRightTrigger,
+                                             255,
+                                             XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
   }
 }
 
 /*== Apple Implementation ============================================*/
 #elif defined(__APPLE__)
 
-_SOKOL_PRIVATE void _sgamepad_record_state() {
+_SOKOL_PRIVATE void
+_sgamepad_record_state()
+{
   int target_index = 0;
   for (GCController *controller in GCController.controllers) {
     GCExtendedGamepad *extended_gamepad = controller.extendedGamepad;
@@ -364,27 +383,34 @@ _SOKOL_PRIVATE void _sgamepad_record_state() {
 
     _sgamepad_generate_analog_stick_state(
         extended_gamepad.leftThumbstick.xAxis.value,
-        extended_gamepad.leftThumbstick.yAxis.value, 1.0f, 0.01f,
+        extended_gamepad.leftThumbstick.yAxis.value,
+        1.0f,
+        0.01f,
         &(target->left_stick));
     _sgamepad_generate_analog_stick_state(
         extended_gamepad.rightThumbstick.xAxis.value,
-        extended_gamepad.rightThumbstick.yAxis.value, 1.0f, 0.01f,
+        extended_gamepad.rightThumbstick.yAxis.value,
+        1.0f,
+        0.01f,
         &(target->right_stick));
 
-    target->left_shoulder = extended_gamepad.leftShoulder.value;
+    target->left_shoulder  = extended_gamepad.leftShoulder.value;
     target->right_shoulder = extended_gamepad.rightShoulder.value;
-    target->left_trigger = extended_gamepad.leftTrigger.value;
-    target->right_trigger = extended_gamepad.rightTrigger.value;
+    target->left_trigger   = extended_gamepad.leftTrigger.value;
+    target->right_trigger  = extended_gamepad.rightTrigger.value;
   }
 }
 
 /*== Android Implementation ============================================*/
 #elif defined(__ANDROID__)
 
-_SOKOL_PRIVATE int _sgamepad_android_get_player_id(const AInputEvent *event) {
+_SOKOL_PRIVATE int
+_sgamepad_android_get_player_id(const AInputEvent *event)
+{
   int32_t source_type = AInputEvent_getSource(event);
-  if (!(source_type & (AINPUT_SOURCE_DPAD | AINPUT_SOURCE_GAMEPAD |
-                       AINPUT_SOURCE_JOYSTICK))) {
+  if (!(source_type
+        & (AINPUT_SOURCE_DPAD | AINPUT_SOURCE_GAMEPAD
+           | AINPUT_SOURCE_JOYSTICK))) {
     return -1;
   }
 
@@ -403,8 +429,10 @@ _SOKOL_PRIVATE int _sgamepad_android_get_player_id(const AInputEvent *event) {
   return -1;
 }
 
-_SOKOL_PRIVATE bool _sgamepad_android_map_keycode_to_button(
-    uint32_t key_code, sgamepad_digital_inputs *out_mapped_input) {
+_SOKOL_PRIVATE bool
+_sgamepad_android_map_keycode_to_button(
+    uint32_t key_code, sgamepad_digital_inputs *out_mapped_input)
+{
   bool mapped = true;
   switch (key_code) {
   case AKEYCODE_DPAD_UP:
@@ -454,7 +482,8 @@ _SOKOL_PRIVATE bool _sgamepad_android_map_keycode_to_button(
 _SOKOL_PRIVATE bool
 _sgamepad_android_map_keycode_to_shoulder(uint32_t key_code,
                                           sgamepad_gamepad_state *target,
-                                          float **out_mapped_input) {
+                                          float **out_mapped_input)
+{
   bool mapped = true;
   switch (key_code) {
   case AKEYCODE_BUTTON_L1:
@@ -471,16 +500,18 @@ _sgamepad_android_map_keycode_to_shoulder(uint32_t key_code,
   return mapped;
 }
 
-_SOKOL_PRIVATE bool _sgamepad_android_key_handler(const AInputEvent *event) {
+_SOKOL_PRIVATE bool
+_sgamepad_android_key_handler(const AInputEvent *event)
+{
   int player_id = _sgamepad_android_get_player_id(event);
   if (player_id < 0 || player_id >= SGAMEPAD_MAX_SUPPORTED_GAMEPADS) {
     return false;
   }
 
-  sgamepad_gamepad_state *target =
-      _sgamepad.transient_gamepad_states + player_id;
+  sgamepad_gamepad_state *target
+      = _sgamepad.transient_gamepad_states + player_id;
 
-  uint32_t key_code = AKeyEvent_getKeyCode(event);
+  uint32_t key_code   = AKeyEvent_getKeyCode(event);
   uint32_t key_action = AKeyEvent_getAction(event);
 
   static sgamepad_digital_inputs mapped_button_input;
@@ -498,8 +529,8 @@ _SOKOL_PRIVATE bool _sgamepad_android_key_handler(const AInputEvent *event) {
   }
 
   static float *mapped_shoulder_input;
-  if (_sgamepad_android_map_keycode_to_shoulder(key_code, target,
-                                                &mapped_shoulder_input)) {
+  if (_sgamepad_android_map_keycode_to_shoulder(
+          key_code, target, &mapped_shoulder_input)) {
     switch (key_action) {
     case AKEY_EVENT_ACTION_DOWN:
       if (AKeyEvent_getRepeatCount(event) == 0) {
@@ -515,7 +546,9 @@ _SOKOL_PRIVATE bool _sgamepad_android_key_handler(const AInputEvent *event) {
   return false;
 }
 
-_SOKOL_PRIVATE bool _sgamepad_android_motion_handler(const AInputEvent *event) {
+_SOKOL_PRIVATE bool
+_sgamepad_android_motion_handler(const AInputEvent *event)
+{
   int player_id = _sgamepad_android_get_player_id(event);
   if (player_id < 0 || player_id >= SGAMEPAD_MAX_SUPPORTED_GAMEPADS) {
     return false;
@@ -525,12 +558,12 @@ _SOKOL_PRIVATE bool _sgamepad_android_motion_handler(const AInputEvent *event) {
     return false;
   }
 
-  sgamepad_gamepad_state *target =
-      _sgamepad.transient_gamepad_states + player_id;
+  sgamepad_gamepad_state *target
+      = _sgamepad.transient_gamepad_states + player_id;
 
   /* D-Pad mapped to analog */
-  float d_pad_sample =
-      AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_HAT_X, 0);
+  float d_pad_sample
+      = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_HAT_X, 0);
   if (d_pad_sample < 0) {
     target->digital_inputs |= SGAMEPAD_GAMEPAD_DPAD_LEFT;
     target->digital_inputs &= (~SGAMEPAD_GAMEPAD_DPAD_RIGHT);
@@ -557,23 +590,25 @@ _SOKOL_PRIVATE bool _sgamepad_android_motion_handler(const AInputEvent *event) {
   float stick_x, stick_y;
   stick_x = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_X, 0);
   stick_y = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_Y, 0);
-  _sgamepad_generate_analog_stick_state(stick_x, -stick_y, 1.0f, 0.01f,
-                                        &(target->left_stick));
+  _sgamepad_generate_analog_stick_state(
+      stick_x, -stick_y, 1.0f, 0.01f, &(target->left_stick));
 
   stick_x = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_Z, 0);
   stick_y = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RZ, 0);
-  _sgamepad_generate_analog_stick_state(stick_x, -stick_y, 1.0f, 0.01f,
-                                        &(target->right_stick));
+  _sgamepad_generate_analog_stick_state(
+      stick_x, -stick_y, 1.0f, 0.01f, &(target->right_stick));
 
-  target->left_trigger =
-      AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_LTRIGGER, 0);
-  target->right_trigger =
-      AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RTRIGGER, 0);
+  target->left_trigger
+      = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_LTRIGGER, 0);
+  target->right_trigger
+      = AMotionEvent_getAxisValue(event, AMOTION_EVENT_AXIS_RTRIGGER, 0);
 
   return false;
 }
 
-_SOKOL_PRIVATE bool _sgamepad_android_input_handler(const AInputEvent *event) {
+_SOKOL_PRIVATE bool
+_sgamepad_android_input_handler(const AInputEvent *event)
+{
   switch (AInputEvent_getType(event)) {
   case AINPUT_EVENT_TYPE_KEY:
     return _sgamepad_android_key_handler(event);
@@ -584,11 +619,15 @@ _SOKOL_PRIVATE bool _sgamepad_android_input_handler(const AInputEvent *event) {
   }
 }
 
-_SOKOL_PRIVATE void _sgamepad_android_init() {
+_SOKOL_PRIVATE void
+_sgamepad_android_init()
+{
   _sapp.android.gamepad_event_handler = _sgamepad_android_input_handler;
 }
 
-_SOKOL_PRIVATE void _sgamepad_record_state() {
+_SOKOL_PRIVATE void
+_sgamepad_record_state()
+{
   for (int i = 0; i < SGAMEPAD_MAX_SUPPORTED_GAMEPADS; i++) {
     _sgamepad.gamepad_states[i] = _sgamepad.transient_gamepad_states[i];
   }
@@ -598,28 +637,38 @@ _SOKOL_PRIVATE void _sgamepad_record_state() {
  * ============================================*/
 #else
 
-_SOKOL_PRIVATE void _sgamepad_record_state() {}
+_SOKOL_PRIVATE void
+_sgamepad_record_state()
+{
+}
 
 #endif
 
 /*=== PUBLIC API FUNCTIONS ===================================================*/
-SOKOL_API_IMPL unsigned int sgamepad_get_max_supported_gamepads() {
+SOKOL_API_IMPL unsigned int
+sgamepad_get_max_supported_gamepads()
+{
   return SGAMEPAD_MAX_SUPPORTED_GAMEPADS;
 }
 
-SOKOL_API_IMPL void sgamepad_init() {
+SOKOL_API_IMPL void
+sgamepad_init()
+{
 #if defined(__ANDROID__)
   _sgamepad_android_init();
 #endif
 }
 
-SOKOL_API_IMPL void sgamepad_record_state() {
+SOKOL_API_IMPL void
+sgamepad_record_state()
+{
   memset(_sgamepad.gamepad_states, 0, sizeof(_sgamepad.gamepad_states));
   _sgamepad_record_state();
 }
 
-SOKOL_API_IMPL void sgamepad_get_gamepad_state(unsigned int index,
-                                               sgamepad_gamepad_state *pstate) {
+SOKOL_API_IMPL void
+sgamepad_get_gamepad_state(unsigned int index, sgamepad_gamepad_state *pstate)
+{
   if (index < SGAMEPAD_MAX_SUPPORTED_GAMEPADS) {
     *pstate = _sgamepad.gamepad_states[index];
   }
